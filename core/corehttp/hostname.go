@@ -41,12 +41,15 @@ var defaultKnownGateways = map[string]config.GatewaySpec{
 	"dweb.link":       subdomainGatewaySpec,
 }
 
+// Label's max length in DNS (https://tools.ietf.org/html/rfc1034#page-7)
+const dnsLabelMaxLength int = 63
+
 // HostnameOption rewrites an incoming request based on the Host header.
 func HostnameOption() ServeOption {
 	return func(n *core.IpfsNode, _ net.Listener, mux *http.ServeMux) (*http.ServeMux, error) {
 		childMux := http.NewServeMux()
 
-		coreApi, err := coreapi.NewCoreAPI(n)
+		coreAPI, err := coreapi.NewCoreAPI(n)
 		if err != nil {
 			return nil, err
 		}
@@ -124,7 +127,7 @@ func HostnameOption() ServeOption {
 				// Not a whitelisted path
 
 				// Try DNSLink, if it was not explicitly disabled for the hostname
-				if !gw.NoDNSLink && isDNSLinkRequest(n.Context(), coreApi, r) {
+				if !gw.NoDNSLink && isDNSLinkRequest(n.Context(), coreAPI, r) {
 					// rewrite path and handle as DNSLink
 					r.URL.Path = "/ipns/" + stripPort(r.Host) + r.URL.Path
 					childMux.ServeHTTP(w, r)
@@ -151,14 +154,28 @@ func HostnameOption() ServeOption {
 					return
 				}
 
-				// Do we need to fix multicodec in PeerID represented as CIDv1?
-				if isPeerIDNamespace(ns) {
-					keyCid, err := cid.Decode(rootID)
-					if err == nil && keyCid.Type() != cid.Libp2pKey {
-						if newURL, ok := toSubdomainURL(hostname, pathPrefix+r.URL.Path, r); ok {
-							// Redirect to CID fixed inside of toSubdomainURL()
+				// Check if rootID is a valid CID
+				if rootCID, err := cid.Decode(rootID); err == nil {
+					// Do we need to redirect CID to a canonical DNS representation?
+					dnsID := toDNSPrefix(n.Context(), coreAPI, rootID)
+					if !strings.HasPrefix(r.Host, dnsID) {
+						dnsPrefix := "/" + ns + "/" + dnsID
+						if newURL, ok := toSubdomainURL(hostname, dnsPrefix+r.URL.Path, r); ok {
+							// Redirect to CID split split at deterministic places
+							// to ensure CID always gets the same Origin on the web
 							http.Redirect(w, r, newURL, http.StatusMovedPermanently)
 							return
+						}
+					}
+
+					// Do we need to fix multicodec in PeerID represented as CIDv1?
+					if isPeerIDNamespace(ns) {
+						if rootCID.Type() != cid.Libp2pKey {
+							if newURL, ok := toSubdomainURL(hostname, pathPrefix+r.URL.Path, r); ok {
+								// Redirect to CID fixed inside of toSubdomainURL()
+								http.Redirect(w, r, newURL, http.StatusMovedPermanently)
+								return
+							}
 						}
 					}
 				}
@@ -176,7 +193,7 @@ func HostnameOption() ServeOption {
 			// 1. is wildcard DNSLink enabled (Gateway.NoDNSLink=false)?
 			// 2. does Host header include a fully qualified domain name (FQDN)?
 			// 3. does DNSLink record exist in DNS?
-			if !cfg.Gateway.NoDNSLink && isDNSLinkRequest(n.Context(), coreApi, r) {
+			if !cfg.Gateway.NoDNSLink && isDNSLinkRequest(n.Context(), coreAPI, r) {
 				// rewrite path and handle as DNSLink
 				r.URL.Path = "/ipns/" + stripPort(r.Host) + r.URL.Path
 				childMux.ServeHTTP(w, r)
@@ -266,6 +283,19 @@ func isPeerIDNamespace(ns string) bool {
 	}
 }
 
+// Converts an identifier to DNS-safe representation that fits in 63 characters
+func toDNSPrefix(ctx context.Context, api iface.CoreAPI, id string) (prefix string) {
+	// Return as-is if things fit
+	if len(id) <= dnsLabelMaxLength {
+		return id
+	}
+
+	// TODO: get original root
+	// TODO: create a new CID, representing a dns-safe root
+
+	return id
+}
+
 // Converts a hostname/path to a subdomain-based URL, if applicable.
 func toSubdomainURL(hostname, path string, r *http.Request) (redirURL string, ok bool) {
 	var scheme, ns, rootID, rest string
@@ -339,6 +369,17 @@ func toSubdomainURL(hostname, path string, r *http.Request) (redirURL string, ok
 			// should not error, but if it does, its clealy not possible to
 			// produce a subdomain URL
 			return "", false
+		}
+
+		// if IPNS rootID is too long, but Base36 makes it fit, switch to it
+		if len(rootID) > 63 && isPeerIDNamespace(ns) {
+			encoding, err := cid.ExtractEncoding(rootID)
+			if err == nil && encoding != mbase.Base36 {
+				rootIDb36, err := cid.NewCidV1(multicodec, rootCid.Hash()).StringOfBase(mbase.Base36)
+				if err == nil && len(rootIDb36) <= 63 {
+					rootID = rootIDb36
+				}
+			}
 		}
 	}
 
