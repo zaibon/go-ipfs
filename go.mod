@@ -97,18 +97,25 @@ require (
 	github.com/prometheus/client_golang v1.6.0
 	github.com/stretchr/testify v1.6.0
 	github.com/syndtr/goleveldb v1.0.0
+	github.com/threefoldtech/0-stor v0.0.0-20200531080354-187b60ca8258
 	github.com/whyrusleeping/base32 v0.0.0-20170828182744-c30ac30633cc
 	github.com/whyrusleeping/go-sysinfo v0.0.0-20190219211824-4a357d4b90b1
 	github.com/whyrusleeping/multiaddr-filter v0.0.0-20160516205228-e903e4adabd7
 	github.com/whyrusleeping/tar-utils v0.0.0-20180509141711-8c6c8ba81d5c
+	github.com/zaibon/zstords v0.0.0-00010101000000-000000000000
 	go.uber.org/fx v1.12.0
 	go.uber.org/zap v1.15.0
 	golang.org/x/crypto v0.0.0-20200510223506-06a226fb4e37
 	golang.org/x/lint v0.0.0-20200302205851-738671d3881b // indirect
-	golang.org/x/net v0.0.0-20200520182314-0ba52f642ac2 // indirect
-	golang.org/x/sys v0.0.0-20200523222454-059865788121
+	golang.org/x/sys v0.0.0-20200602225109-6fdc65e7d980
 	golang.org/x/tools v0.0.0-20200522201501-cb1345f3a375 // indirect
 	gopkg.in/cheggaaa/pb.v1 v1.0.28
 )
 
 go 1.13
+
+replace github.com/threefoldtech/0-stor => /home/zaibon/dev/go/src/github.com/threefoldtech/0-stor
+
+replace github.com/zaibon/zstords => /home/zaibon/dev/go/src/github.com/zaibon/ipfs-0stor-ds
+
+replace github.com/ipfs/go-ipfs-config => ../go-ipfs-config
