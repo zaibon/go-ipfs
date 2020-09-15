@@ -41,6 +41,7 @@ var dnsResolver = madns.DefaultResolver
 
 const (
 	EnvEnableProfiling = "IPFS_PROF"
+	EnvIPFSAPI         = "IPFS_API"
 	cpuProfile         = "ipfs.cpuprof"
 	heapProfile        = "ipfs.memprof"
 )
@@ -193,8 +194,12 @@ func checkDebug(req *cmds.Request) {
 func apiAddrOption(req *cmds.Request) (ma.Multiaddr, error) {
 	apiAddrStr, apiSpecified := req.Options[corecmds.ApiOption].(string)
 	if !apiSpecified {
-		return nil, nil
+		apiAddrStr, apiSpecified = os.LookupEnv(EnvIPFSAPI)
+		if !apiSpecified {
+			return nil, nil
+		}
 	}
+
 	return ma.NewMultiaddr(apiAddrStr)
 }
 
