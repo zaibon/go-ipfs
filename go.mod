@@ -11,6 +11,7 @@ require (
 	github.com/fsnotify/fsnotify v1.4.9
 	github.com/gabriel-vasile/mimetype v1.2.0
 	github.com/go-bindata/go-bindata/v3 v3.1.3
+	github.com/gopherjs/gopherjs v0.0.0-20190812055157-5d271430af9f // indirect
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/ipfs/go-bitswap v0.3.3
 	github.com/ipfs/go-block-format v0.0.3
@@ -25,7 +26,7 @@ require (
 	github.com/ipfs/go-ds-measure v0.1.0
 	github.com/ipfs/go-filestore v0.0.3
 	github.com/ipfs/go-fs-lock v0.0.6
-	github.com/ipfs/go-graphsync v0.7.0
+	github.com/ipfs/go-graphsync v0.10.3
 	github.com/ipfs/go-ipfs-blockstore v0.1.4
 	github.com/ipfs/go-ipfs-chunker v0.0.5
 	github.com/ipfs/go-ipfs-cmds v0.6.0
@@ -88,10 +89,11 @@ require (
 	github.com/multiformats/go-multiaddr v0.3.1
 	github.com/multiformats/go-multiaddr-dns v0.2.0
 	github.com/multiformats/go-multibase v0.0.3
-	github.com/multiformats/go-multihash v0.0.14
+	github.com/multiformats/go-multihash v0.0.15
 	github.com/opentracing/opentracing-go v1.2.0
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.10.0
+	github.com/smartystreets/assertions v1.0.1 // indirect
 	github.com/stretchr/testify v1.7.0
 	github.com/syndtr/goleveldb v1.0.0
 	github.com/whyrusleeping/go-sysinfo v0.0.0-20190219211824-4a357d4b90b1
@@ -104,6 +106,7 @@ require (
 	golang.org/x/lint v0.0.0-20201208152925-83fdc39ff7b5 // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 	golang.org/x/sys v0.0.0-20210309074719-68d13333faf2
+	golang.org/x/tools v0.1.1-0.20210225150353-54dc8c5edb56 // indirect
 )
 
 go 1.14
